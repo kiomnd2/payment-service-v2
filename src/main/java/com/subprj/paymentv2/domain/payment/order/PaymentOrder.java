@@ -21,36 +21,37 @@ public class PaymentOrder {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @JoinColumn(unique = true, name = "payment_event_id")
     @ManyToOne(fetch = FetchType.LAZY)
     private PaymentEvent paymentEvent;
 
-    @Column(name = "seller_id", nullable = false)
+    @Column(name = "seller_id")
     private Long sellerId;
 
-    @Column(name = "product_id", nullable = false)
+    @Column(name = "product_id")
     private Long productId;
 
-    @Column(name = "order_id", nullable = false)
+    @Column(name = "order_id")
     private String orderId;
 
-    @Column(name = "amount", nullable = false)
+    @Column(name = "amount")
     private BigDecimal amount;
 
-    @Column(name = "payment_order_status", nullable = false, columnDefinition = "")
-    private PaymentOrderStatus paymentOrderStatus = PaymentOrderStatus.NOT_STARTED;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "payment_order_status")
+    private PaymentOrderStatus paymentOrderStatus;
 
-    @Column(name = "ledger_updated", nullable = false)
-    private Boolean ledgerUpdated = false;
+    @Column(name = "ledger_updated")
+    private Boolean ledgerUpdated;
 
-    @Column(name = "wallet_updated", nullable = false)
-    private Boolean walletUpdated = false;
+    @Column(name = "wallet_updated")
+    private Boolean walletUpdated;
 
     @Column(name = "failed_count", nullable = false)
-    private Long failedCount = 0L;
+    private Long failedCount;
 
     @Column(name = "threshold", nullable = false)
-    private Long threshold = 5L;
+    private Long threshold;
+
     @Column(name = "created_at", nullable = false)
     @CreationTimestamp
     private LocalDateTime createdAt;
@@ -58,6 +59,10 @@ public class PaymentOrder {
     @Column(name = "updated_at", nullable = false)
     @UpdateTimestamp
     private LocalDateTime updatedAt;
+
+    public void setPaymentEvent(PaymentEvent paymentEvent) {
+        this.paymentEvent = paymentEvent;
+    }
 
     @Getter
     @RequiredArgsConstructor
@@ -74,7 +79,6 @@ public class PaymentOrder {
     @Builder
     public PaymentOrder(PaymentEvent paymentEvent, Long sellerId, Long productId,
                         String orderId, BigDecimal amount, PaymentOrderStatus paymentOrderStatus,
-                        Boolean ledgerUpdated, Boolean walletUpdated, Long failedCount, Long threshold,
                         LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.paymentEvent = paymentEvent;
         this.sellerId = sellerId;
@@ -82,10 +86,10 @@ public class PaymentOrder {
         this.orderId = orderId;
         this.amount = amount;
         this.paymentOrderStatus = paymentOrderStatus;
-        this.ledgerUpdated = ledgerUpdated;
-        this.walletUpdated = walletUpdated;
-        this.failedCount = failedCount;
-        this.threshold = threshold;
+        this.ledgerUpdated = false;
+        this.walletUpdated = false;
+        this.failedCount = 0L;
+        this.threshold = 5L;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }

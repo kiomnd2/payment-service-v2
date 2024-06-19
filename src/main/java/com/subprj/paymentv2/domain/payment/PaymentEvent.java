@@ -12,6 +12,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -28,23 +29,23 @@ public class PaymentEvent {
     private Long buyerId;
 
     @Column(name = "is_payment_done", nullable = false)
-    private Boolean isPaymentDone = false;
+    private Boolean isPaymentDone;
 
-    @Column(name = "payment_key", nullable = false, unique = true)
+    @Column(name = "payment_key", unique = true)
     private String paymentKey;
 
     @Column(name = "order_id", nullable = false, unique = true)
     private String orderId;
 
     @Enumerated(EnumType.STRING)
-    private PaymentType type = PaymentType.NORMAL;
+    private PaymentType type;
 
     @Column(name = "order_name", nullable = false)
     private String orderName;
 
     @Enumerated(EnumType.STRING)
     private PaymentMethod method;
-    @Column(name = "psp_raw_data", nullable = false)
+    @Column(name = "psp_raw_data")
     private String pspRawData;
 
     @Column(name = "approved_at")
@@ -54,13 +55,17 @@ public class PaymentEvent {
     @CreationTimestamp
     private LocalDateTime createdAt;
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "paymentEvent")
+    @OneToMany(fetch = FetchType.EAGER, mappedBy = "paymentEvent", cascade = CascadeType.PERSIST)
     private List<PaymentOrder> paymentOrders;
 
     @Column(name = "updated_at", nullable = false)
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
+    public void addPaymentOrder(PaymentOrder paymentOrder) {
+        this.paymentOrders.add(paymentOrder);
+        paymentOrder.setPaymentEvent(this);
+    }
 
     @RequiredArgsConstructor
     public enum PaymentType {
@@ -77,22 +82,21 @@ public class PaymentEvent {
     }
 
     @Builder
-    public PaymentEvent(Long buyerId, Boolean isPaymentDone, String paymentKey,
-                        String orderId, PaymentType type, String orderName,
+    public PaymentEvent(Long buyerId, String paymentKey, String orderId, String orderName,
                         PaymentMethod method, String pspRawData, LocalDateTime approvedAt,
-                        LocalDateTime createdAt, List<PaymentOrder> paymentOrders, LocalDateTime updatedAt) {
+                        LocalDateTime createdAt, LocalDateTime updatedAt) {
 
         this.buyerId = buyerId;
-        this.isPaymentDone = isPaymentDone;
+        this.isPaymentDone = false;
         this.paymentKey = paymentKey;
         this.orderId = orderId;
-        this.type = type;
+        this.type = PaymentType.NORMAL;;
         this.orderName = orderName;
         this.method = method;
         this.pspRawData = pspRawData;
         this.approvedAt = approvedAt;
         this.createdAt = createdAt;
-        this.paymentOrders = paymentOrders;
+        this.paymentOrders = new ArrayList<>();;
         this.updatedAt = updatedAt;
     }
 

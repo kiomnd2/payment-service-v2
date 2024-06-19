@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -32,18 +33,21 @@ public class CheckoutService implements CheckoutUseCase {
     }
 
     private PaymentEvent createPaymentEvent(CheckoutCommand command, List<Product> products) {
-        return PaymentEvent.builder()
+        PaymentEvent paymentEvent = PaymentEvent.builder()
                 .buyerId(command.getBuyerId())
                 .orderId(command.getIdempotencyKey())
                 .orderName(products.stream().map(Product::getName).collect(Collectors.joining(",")))
-                .paymentOrders(products.stream()
-                        .map(product -> PaymentOrder.builder()
-                                .sellerId(product.getSellerId())
-                                .orderId(command.getIdempotencyKey())
-                                .productId(product.getId())
-                                .amount(product.getAmount())
-                                .paymentOrderStatus(PaymentOrder.PaymentOrderStatus.NOT_STARTED)
-                                .build()).toList())
                 .build();
+
+        for (Product product : products) {
+            paymentEvent.addPaymentOrder(PaymentOrder.builder()
+                    .sellerId(product.getSellerId())
+                    .orderId(command.getIdempotencyKey())
+                    .productId(product.getId())
+                    .amount(product.getAmount().multiply(BigDecimal.valueOf(product.getQuantity())))
+                    .paymentOrderStatus(PaymentOrder.PaymentOrderStatus.NOT_STARTED)
+                    .build());
+        }
+        return paymentEvent;
     }
 }
