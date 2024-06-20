@@ -1,6 +1,8 @@
 package com.subprj.paymentv2.domain.payment.order;
 
+import com.subprj.paymentv2.common.exception.PaymentAlreadyProcessedException;
 import com.subprj.paymentv2.domain.payment.PaymentEvent;
+import com.subprj.paymentv2.domain.payment.order.history.PaymentOrderHistory;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
@@ -11,6 +13,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @NoArgsConstructor
@@ -60,8 +63,16 @@ public class PaymentOrder {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "paymentOrder", cascade = CascadeType.PERSIST)
+    private List<PaymentOrderHistory> paymentOrderHistories;
+
     public void setPaymentEvent(PaymentEvent paymentEvent) {
         this.paymentEvent = paymentEvent;
+    }
+
+    public void addHistory(PaymentOrderHistory history) {
+        this.paymentOrderHistories.add(history);
+        history.setPaymentOrder(this);
     }
 
     @Getter
@@ -92,5 +103,16 @@ public class PaymentOrder {
         this.threshold = 5L;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
+    }
+
+    public void changeState(PaymentOrderStatus status) {
+        // payment 상태가 NOT_STARTED, UNKNOWN, EXECUTING 중 어떤것도 아닐땐 제한
+        if (this.paymentOrderStatus == PaymentOrderStatus.SUCCESS) {
+            throw new PaymentAlreadyProcessedException(PaymentOrderStatus.SUCCESS, "이미 처리 성공한 결제 입니다.");
+        } else if (this.paymentOrderStatus == PaymentOrderStatus.FAILURE) {
+            throw new PaymentAlreadyProcessedException(PaymentOrderStatus.FAILURE, "이미 처리 실패한 결제 입니다.");
+        }
+
+        this.paymentOrderStatus = status;
     }
 }

@@ -1,7 +1,7 @@
 package com.subprj.paymentv2.infrastructure.payment;
 
 import com.subprj.paymentv2.domain.payment.PaymentEvent;
-import com.subprj.paymentv2.domain.payment.checkout.PaymentStore;
+import com.subprj.paymentv2.domain.payment.PaymentStore;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

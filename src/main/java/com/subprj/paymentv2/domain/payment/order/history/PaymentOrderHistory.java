@@ -1,7 +1,8 @@
-package com.subprj.paymentv2.domain.payment.history;
+package com.subprj.paymentv2.domain.payment.order.history;
 
 import com.subprj.paymentv2.domain.payment.order.PaymentOrder;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 
@@ -37,5 +38,18 @@ public class PaymentOrderHistory {
     @Column(name = "reason")
     private String reason;
 
+    @Builder
+    public PaymentOrderHistory(PaymentOrder paymentOrder, PaymentOrder.PaymentOrderStatus previousStatus,
+                               PaymentOrder.PaymentOrderStatus new_status, String changedBy, String reason) {
+        this.paymentOrder = paymentOrder;
+        this.previousStatus = previousStatus;
+        this.new_status = new_status;
+        this.createdAt = createdAt;
+        this.changedBy = changedBy;
+        this.reason = reason;
+    }
 
+    public void setPaymentOrder(PaymentOrder paymentOrder) {
+        this.paymentOrder = paymentOrder;
+    }
 }

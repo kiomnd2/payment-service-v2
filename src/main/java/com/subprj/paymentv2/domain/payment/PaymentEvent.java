@@ -103,4 +103,8 @@ public class PaymentEvent {
     public Long totalAmount() {
         return this.paymentOrders.stream().mapToLong(order -> order.getAmount().longValue()).sum();
     }
+
+    public void changePaymentKey(String paymentKey) {
+        this.paymentKey = paymentKey;
+    }
 }

@@ -1,6 +1,7 @@
 package com.subprj.paymentv2.domain.payment.checkout;
 
 import com.subprj.paymentv2.domain.payment.PaymentEvent;
+import com.subprj.paymentv2.domain.payment.PaymentStore;
 import com.subprj.paymentv2.domain.payment.order.PaymentOrder;
 import com.subprj.paymentv2.domain.payment.product.Product;
 import com.subprj.paymentv2.domain.payment.product.ProductReader;

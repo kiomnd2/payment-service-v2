@@ -2,7 +2,7 @@ package com.subprj.paymentv2.domain.payment.test;
 
 import com.subprj.paymentv2.domain.payment.PaymentEvent;
 import com.subprj.paymentv2.infrastructure.payment.PaymentRepository;
-import com.subprj.paymentv2.infrastructure.payment.history.PaymentOrderHistoryRepository;
+import com.subprj.paymentv2.infrastructure.payment.order.history.PaymentOrderHistoryRepository;
 import com.subprj.paymentv2.infrastructure.payment.order.PaymentOrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

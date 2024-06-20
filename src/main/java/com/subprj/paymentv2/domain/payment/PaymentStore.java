@@ -1,4 +1,4 @@
-package com.subprj.paymentv2.domain.payment.checkout;
+package com.subprj.paymentv2.domain.payment;
 
 import com.subprj.paymentv2.domain.payment.PaymentEvent;
 
