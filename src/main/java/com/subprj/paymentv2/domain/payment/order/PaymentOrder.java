@@ -2,6 +2,7 @@ package com.subprj.paymentv2.domain.payment.order;
 
 import com.subprj.paymentv2.common.exception.PaymentAlreadyProcessedException;
 import com.subprj.paymentv2.domain.payment.PaymentEvent;
+import com.subprj.paymentv2.domain.payment.PaymentExecutionResult;
 import com.subprj.paymentv2.domain.payment.order.history.PaymentOrderHistory;
 import jakarta.persistence.*;
 import lombok.Builder;
@@ -75,6 +76,7 @@ public class PaymentOrder {
         history.setPaymentOrder(this);
     }
 
+
     @Getter
     @RequiredArgsConstructor
     public enum PaymentOrderStatus {
@@ -105,14 +107,22 @@ public class PaymentOrder {
         this.updatedAt = updatedAt;
     }
 
-    public void changeState(PaymentOrderStatus status) {
+    public void changeStateExecuting() {
         // payment 상태가 NOT_STARTED, UNKNOWN, EXECUTING 중 어떤것도 아닐땐 제한
         if (this.paymentOrderStatus == PaymentOrderStatus.SUCCESS) {
             throw new PaymentAlreadyProcessedException(PaymentOrderStatus.SUCCESS, "이미 처리 성공한 결제 입니다.");
         } else if (this.paymentOrderStatus == PaymentOrderStatus.FAILURE) {
             throw new PaymentAlreadyProcessedException(PaymentOrderStatus.FAILURE, "이미 처리 실패한 결제 입니다.");
         }
+        this.paymentOrderStatus = PaymentOrderStatus.EXECUTING;
+    }
 
-        this.paymentOrderStatus = status;
+
+    public void changeStateByResult(PaymentExecutionResult result) {
+        if (!(result.getIsFailure() || result.getIsSuccess() || result.getIsUnknown())) {
+            throw new IllegalArgumentException(String.format("결제 상태 (status : %s) 는 올바르지 않은 상태입니다.",
+                    result.paymentOrderStatus().name()));
+        }
+        this.paymentOrderStatus = result.paymentOrderStatus();
     }
 }

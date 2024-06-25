@@ -1,11 +1,12 @@
 package com.subprj.paymentv2.domain.payment;
 
+import com.subprj.paymentv2.domain.payment.order.PaymentOrder;
+import com.subprj.paymentv2.domain.payment.order.PaymentOrderStoreFactory;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.stream.Stream;
 
 
@@ -15,7 +16,7 @@ public class PaymentExecutionResult {
     private String paymentKey;
     private String orderId;
     private PaymentExtraDetails paymentExtraDetails;
-    private Failure failure;
+    private PaymentExecutionFailure failure;
     private Boolean isSuccess;
     private Boolean isFailure;
     private Boolean isUnknown;
@@ -23,7 +24,7 @@ public class PaymentExecutionResult {
 
     @Builder
     public PaymentExecutionResult(String paymentKey, String orderId, PaymentExtraDetails paymentExtraDetails,
-                                  Failure failure,
+                                  PaymentExecutionFailure failure,
                                   Boolean isSuccess, Boolean isFailure, Boolean isUnknown, Boolean isRetryable) {
         long count = Stream.of(isSuccess, isFailure, isUnknown).filter(v -> v).count();
         if (count != 1) {
@@ -64,8 +65,17 @@ public class PaymentExecutionResult {
         }
     }
 
-    public static class Failure {
+    public static class PaymentExecutionFailure {
         private String errorCode;
         private String message;
+    }
+
+    public PaymentOrder.PaymentOrderStatus paymentOrderStatus() {
+        if (isSuccess) return PaymentOrder.PaymentOrderStatus.SUCCESS;
+        else if (isFailure) return PaymentOrder.PaymentOrderStatus.FAILURE;
+        else if (isUnknown) return PaymentOrder.PaymentOrderStatus.UNKNOWN;
+        else {
+            throw new IllegalArgumentException("결제 는 올바르지 않은 결제 상태입니다.");
+        }
     }
 }
