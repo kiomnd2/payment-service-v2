@@ -1,8 +1,6 @@
 package com.subprj.paymentv2.interfaces.payment.api;
 
 import com.subprj.paymentv2.common.response.CommonResponse;
-import com.subprj.paymentv2.domain.payment.PaymentCommand;
-import com.subprj.paymentv2.domain.payment.PaymentExecutor;
 import com.subprj.paymentv2.domain.payment.confirm.PaymentConfirmCommand;
 import com.subprj.paymentv2.domain.payment.confirm.PaymentConfirmUseCase;
 import com.subprj.paymentv2.domain.payment.confirm.PaymentConfirmationResult;

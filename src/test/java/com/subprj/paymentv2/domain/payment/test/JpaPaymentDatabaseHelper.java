@@ -25,7 +25,7 @@ public class JpaPaymentDatabaseHelper implements PaymentDatabaseHelper {
 
     @Override
     public PaymentEvent getPayment(String orderId) {
-        return paymentRepository.findByOrderId(orderId).get(0);
+        return paymentRepository.findByOrderId(orderId).orElseThrow(() -> new RuntimeException("찾을 수 없는 Entity"));
     }
 
     @Transactional

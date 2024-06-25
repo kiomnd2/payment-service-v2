@@ -72,6 +72,16 @@ public class PaymentEvent {
         NORMAL("일반 결제");
 
         private final String description;
+
+        public static PaymentType get(final String type) {
+            PaymentType[] values = values();
+            for (PaymentType value : values) {
+                if (type.equals(value.name())) {
+                    return value;
+                }
+            }
+            throw new IllegalArgumentException("해당 type 은 잘못된 타입입니다 " + type);
+        }
     }
 
     @RequiredArgsConstructor
@@ -79,6 +89,16 @@ public class PaymentEvent {
         EASY_PAY("간편결제");
 
         private final String description;
+
+        public static PaymentMethod get(final String type) {
+            PaymentMethod[] values = values();
+            for (PaymentMethod value : values) {
+                if (type.equals(value.name())) {
+                    return value;
+                }
+            }
+            throw new IllegalArgumentException("해당 type 은 잘못된 타입입니다 " + type);
+        }
     }
 
     @Builder

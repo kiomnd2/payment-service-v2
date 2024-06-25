@@ -1,6 +1,8 @@
 package com.subprj.paymentv2.domain.payment;
 
+import com.subprj.paymentv2.domain.payment.confirm.PaymentConfirmCommand;
+
 public interface PaymentExecutor {
 
-    String execute(PaymentCommand command);
+    PaymentExecutionResult execute(PaymentConfirmCommand command);
 }

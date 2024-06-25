@@ -1,6 +1,7 @@
 package com.subprj.paymentv2.domain.payment.confirm;
 
 import com.subprj.paymentv2.domain.payment.PaymentEventStoreFactory;
+import com.subprj.paymentv2.domain.payment.PaymentExecutor;
 import com.subprj.paymentv2.domain.payment.PaymentValidator;
 import com.subprj.paymentv2.domain.payment.order.PaymentOrder;
 import com.subprj.paymentv2.domain.payment.order.PaymentOrderReader;
@@ -18,6 +19,7 @@ public class PaymentConfirmService implements PaymentConfirmUseCase {
     private final PaymentOrderHistoryStoreFactory paymentOrderHistoryStoreFactory;
     private final PaymentEventStoreFactory paymentEventStoreFactory;
     private final PaymentValidator paymentValidator;
+    private final PaymentExecutor paymentExecutor;
 
     @Transactional
     @Override
