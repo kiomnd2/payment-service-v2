@@ -14,6 +14,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -105,6 +106,7 @@ public class PaymentOrder {
         this.threshold = 5L;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
+        this.paymentOrderHistories = new ArrayList<>();
     }
 
     public void changeStateExecuting() {

@@ -18,11 +18,13 @@ import org.mockito.Spy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
@@ -51,6 +53,7 @@ class PaymentConfirmServiceTest {
     @Mock
     PaymentExecutor paymentExecutor;
 
+    @Transactional
     @Test
     void shouldBeMarkedAsSUCCESSIfPaymentConfirmationSuccessInPSP() {
         String orderId = UUID.randomUUID().toString();
@@ -73,17 +76,22 @@ class PaymentConfirmServiceTest {
         PaymentConfirmService paymentConfirmService =
                 new PaymentConfirmService(paymentOrderReader, paymentOrderStoreFactory, paymentEventStoreFactory, paymentValidator, paymentExecutor);
 
+
+        LocalDateTime now = LocalDateTime.now();
+        PaymentEvent.PaymentType type = PaymentEvent.PaymentType.NORMAL;
+        PaymentEvent.PaymentMethod method = PaymentEvent.PaymentMethod.EASY_PAY;
+
         Mockito.when(paymentExecutor.execute(ArgumentMatchers.any()))
                 .thenReturn(PaymentExecutionResult.builder()
                         .paymentKey(paymentConfirmCommand.getPaymentKey())
                         .orderId(paymentConfirmCommand.getOrderId())
                         .paymentExtraDetails( PaymentExecutionResult.PaymentExtraDetails.builder()
-                                .paymentType(PaymentEvent.PaymentType.NORMAL)
-                                .paymentMethod(PaymentEvent.PaymentMethod.EASY_PAY)
+                                .paymentType(type)
+                                .paymentMethod(method)
                                 .totalAmount(paymentConfirmCommand.getAmount())
                                 .orderName("test Order")
                                 .pspConfirmationStatus(PSPConfirmationStatus.DONE)
-                                .approvedAt(LocalDateTime.now())
+                                .approvedAt(now)
                                 .pspRawData("{}")
                                 .build())
                         .isSuccess(true)
@@ -94,7 +102,15 @@ class PaymentConfirmServiceTest {
 
         PaymentConfirmationResult result = paymentConfirmService.confirm(paymentConfirmCommand);
 
-        Assertions.assertThat(result.getStatus()).isEqualTo(PaymentOrder.PaymentOrderStatus.SUCCESS);
+        PaymentEvent payment = paymentDatabaseHelper.getPayment(orderId);
 
+        assertThat(result.getStatus()).isEqualTo(PaymentOrder.PaymentOrderStatus.SUCCESS);
+        payment.getPaymentOrders().forEach(order -> {
+            assertThat(order.getPaymentOrderStatus()).isEqualTo(PaymentOrder.PaymentOrderStatus.SUCCESS);
+        });
+
+        assertThat(payment.getType()).isEqualTo(type);
+        assertThat(payment.getMethod()).isEqualTo(method);
+        assertThat(payment.getApprovedAt()).isEqualTo(now);
     }
 }
