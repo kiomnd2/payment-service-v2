@@ -5,11 +5,13 @@ import com.subprj.paymentv2.domain.payment.order.history.PaymentOrderHistory;
 import com.subprj.paymentv2.domain.payment.order.history.PaymentOrderHistoryStoreFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
 @Component
 public class PaymentOrderHistoryStoreFactoryImpl implements PaymentOrderHistoryStoreFactory {
 
+    @Transactional
     @Override
     public void store(PaymentOrder paymentOrder, PaymentOrder.PaymentOrderStatus status, String reason) {
         PaymentOrderHistory history = PaymentOrderHistory.builder()

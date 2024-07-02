@@ -64,7 +64,7 @@ public class PaymentOrder {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "paymentOrder", cascade = CascadeType.PERSIST)
+    @OneToMany(fetch = FetchType.EAGER, mappedBy = "paymentOrder", cascade = CascadeType.PERSIST)
     private List<PaymentOrderHistory> paymentOrderHistories;
 
     public void setPaymentEvent(PaymentEvent paymentEvent) {
