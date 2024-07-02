@@ -91,6 +91,7 @@ public class PaymentEvent {
         }
     }
 
+    @Getter
     @RequiredArgsConstructor
     public enum PaymentMethod {
         EASY_PAY("간편결제");
@@ -100,7 +101,7 @@ public class PaymentEvent {
         public static PaymentMethod get(final String type) {
             PaymentMethod[] values = values();
             for (PaymentMethod value : values) {
-                if (type.equals(value.name())) {
+                if (type.equals(value.description)) {
                     return value;
                 }
             }
