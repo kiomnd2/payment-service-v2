@@ -34,7 +34,7 @@ public class PaymentOrder {
     @Column(name = "product_id")
     private Long productId;
 
-    @Column(name = "order_id")
+    @Column(name = "order_id", unique = true)
     private String orderId;
 
     @Column(name = "amount")

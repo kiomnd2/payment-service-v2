@@ -15,8 +15,9 @@ public class PaymentEventStoreFactoryImpl implements PaymentEventStoreFactory {
 
     @Transactional
     @Override
-    public void store(String orderId, String paymentKey) {
+    public PaymentEvent store(String orderId, String paymentKey) {
         PaymentEvent paymentEvent = paymentEventReader.read(orderId);
         paymentEvent.changePaymentKey(paymentKey);
+        return paymentEvent;
     }
 }

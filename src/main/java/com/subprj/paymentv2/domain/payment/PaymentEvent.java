@@ -67,6 +67,13 @@ public class PaymentEvent {
         paymentOrder.setPaymentEvent(this);
     }
 
+    public void updateExtraDetail(PaymentExecutionResult result) {
+        this.orderName = result.getPaymentExtraDetails().getOrderName();
+        this.method = result.getPaymentExtraDetails().getPaymentMethod();;
+        this.approvedAt = result.getPaymentExtraDetails().getApprovedAt();
+        this.type = result.getPaymentExtraDetails().getPaymentType();
+    }
+
     @RequiredArgsConstructor
     public enum PaymentType {
         NORMAL("일반 결제");

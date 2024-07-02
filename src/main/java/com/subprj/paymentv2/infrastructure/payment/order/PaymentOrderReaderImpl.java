@@ -14,7 +14,6 @@ public class PaymentOrderReaderImpl implements PaymentOrderReader {
 
     @Override
     public List<PaymentOrder> readPaymentOrder(String orderId) {
-        paymentOrderRepository.findByOrderId(orderId);
-        return null;
+        return paymentOrderRepository.findByOrderId(orderId);
     }
 }
