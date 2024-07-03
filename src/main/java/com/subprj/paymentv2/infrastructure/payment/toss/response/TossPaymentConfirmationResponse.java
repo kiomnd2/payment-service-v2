@@ -41,7 +41,7 @@ public class TossPaymentConfirmationResponse {
     private Checkout checkout;
     private EasyPay easyPay;
     private String country;
-    private Failure failure;
+    private TossFailureResponse tossFailureResponse;
     private CashReceipt cashReceipt;
 
     // Getters and Setters
@@ -183,7 +183,7 @@ public class TossPaymentConfirmationResponse {
     @Getter
     @Setter
     @ToString
-    public static class Failure {
+    public static class TossFailureResponse {
         private String code;
         private String message;
 
@@ -202,7 +202,7 @@ public class TossPaymentConfirmationResponse {
         private long amount;
         private int taxFreeAmount;
         private String issueStatus;
-        private Failure failure;
+        private TossFailureResponse failure;
         private String customerIdentityNumber;
         private String requestedAt;
 

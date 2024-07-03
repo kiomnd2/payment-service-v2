@@ -1,11 +1,13 @@
 package com.subprj.paymentv2.infrastructure.payment.toss;
 
+import com.subprj.paymentv2.common.exception.PSPConfirmationException;
 import com.subprj.paymentv2.domain.payment.*;
 import com.subprj.paymentv2.domain.payment.confirm.PaymentConfirmCommand;
 import com.subprj.paymentv2.infrastructure.payment.toss.response.TossPaymentConfirmationResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -14,6 +16,7 @@ import java.time.format.DateTimeFormatter;
 @Component
 public class PaymentExecutorImpl implements PaymentExecutor {
     private final WebClient tossPaymentWebClient;
+
     private final String url = "/v1/payments/confirm";
 
 
@@ -34,6 +37,22 @@ public class PaymentExecutorImpl implements PaymentExecutor {
                 .header("Idempotency-Key", command.getOrderId()) // 멱등성 키
                 .bodyValue(bodyValue)
                 .retrieve()
+                .onStatus(httpStatusCode -> httpStatusCode.is5xxServerError() || httpStatusCode.is4xxClientError(),
+                        clientResponse -> {
+                    return clientResponse.bodyToMono(TossPaymentConfirmationResponse.TossFailureResponse.class)
+                            .flatMap(tossFailureResponse -> {
+                                TossPaymentError error = TossPaymentError.get(tossFailureResponse.getCode());
+                                return Mono.error(PSPConfirmationException.builder()
+                                                .errorCode(error.name())
+                                                .errorMessage(error.getDescription())
+                                                .isSuccess(error.isSuccess())
+                                                .isFailure(error.isFailure())
+                                                .isUnknown(error.isUnknown())
+                                                .isRetryableError(error.isRetryableError())
+                                        .build());
+                            })
+                    ;
+                })
                 .bodyToMono(TossPaymentConfirmationResponse.class)
                 .block();
         return PaymentExecutionResult.builder()
