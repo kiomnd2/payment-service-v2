@@ -8,7 +8,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
+import reactor.util.retry.Retry;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -54,6 +56,10 @@ public class PaymentExecutorImpl implements PaymentExecutor {
                     ;
                 })
                 .bodyToMono(TossPaymentConfirmationResponse.class)
+                .retryWhen(Retry.backoff(2, Duration.ofSeconds(1)).jitter(0.1)
+                        .filter(throwable -> throwable instanceof PSPConfirmationException
+                                && ((PSPConfirmationException) throwable).getIsRetryableError())
+                        .onRetryExhaustedThrow((retryBackoffSpec, retrySignal) -> retrySignal.failure()))
                 .block();
         return PaymentExecutionResult.builder()
                 .paymentKey(response.getPaymentKey())

@@ -1,9 +1,11 @@
 package com.subprj.paymentv2.common.exception;
 
 import lombok.Builder;
+import lombok.Getter;
 
 import java.util.stream.Stream;
 
+@Getter
 public class PSPConfirmationException extends RuntimeException {
     private String errorCode;
     private String errorMessage;
