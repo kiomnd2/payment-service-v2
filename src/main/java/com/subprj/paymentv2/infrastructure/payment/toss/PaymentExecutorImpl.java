@@ -5,6 +5,7 @@ import com.subprj.paymentv2.domain.payment.*;
 import com.subprj.paymentv2.domain.payment.confirm.PaymentConfirmCommand;
 import com.subprj.paymentv2.infrastructure.payment.toss.response.TossPaymentConfirmationResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
@@ -18,9 +19,11 @@ import java.time.format.DateTimeFormatter;
 @Component
 public class PaymentExecutorImpl implements PaymentExecutor {
     private final WebClient tossPaymentWebClient;
+    private String url = "/v1/payments/confirm";
 
-    private final String url = "/v1/payments/confirm";
-
+    public void setUrl(String url) {
+        this.url = url;
+    }
 
     @Override
     public PaymentExecutionResult execute(PaymentConfirmCommand command) {
