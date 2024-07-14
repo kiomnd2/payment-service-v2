@@ -45,7 +45,6 @@ class PaymentExecutorImplTest {
                 Assertions.assertThat(e.getIsSuccess()).isEqualTo(errorScenario.isSuccess);
                 Assertions.assertThat(e.getIsFailure()).isEqualTo(errorScenario.isFailure);
                 Assertions.assertThat(e.getIsUnknown()).isEqualTo(errorScenario.isUnknown);
-
             }
         });
     }

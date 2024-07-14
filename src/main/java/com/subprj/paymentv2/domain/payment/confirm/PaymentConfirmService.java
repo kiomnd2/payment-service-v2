@@ -8,9 +8,7 @@ import com.subprj.paymentv2.domain.payment.order.PaymentOrder;
 import com.subprj.paymentv2.domain.payment.order.PaymentOrderReader;
 import com.subprj.paymentv2.domain.payment.order.PaymentOrderStoreFactory;
 import com.subprj.paymentv2.domain.payment.order.PaymentStatusUpdateCommand;
-import io.netty.handler.timeout.TimeoutException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,13 +27,12 @@ public class PaymentConfirmService implements PaymentConfirmUseCase {
     @Override
     public PaymentConfirmationResult confirm(PaymentConfirmCommand command) {
         List<PaymentOrder> paymentOrders = paymentReader.readPaymentOrder(command.getOrderId());
-
+        PaymentEvent event = paymentEventStoreFactory.store(command.getOrderId(), command.getPaymentKey());
         try {
             List<PaymentOrder> filteredOrder = paymentOrders.stream()
                     .filter(paymentOrder -> paymentValidator.isValid(paymentOrder.getOrderId(), command.getAmount()))
                     .toList();
             paymentOrderStoreFactory.store(filteredOrder, command);
-            PaymentEvent event = paymentEventStoreFactory.store(command.getOrderId(), command.getPaymentKey());
             PaymentExecutionResult result = paymentExecutor.execute(command);
             paymentEventStoreFactory.updateOrderStatus(event, PaymentStatusUpdateCommand.builder()
                             .paymentKey(result.getPaymentKey())
@@ -49,30 +46,80 @@ public class PaymentConfirmService implements PaymentConfirmUseCase {
                     .failure(result.getFailure())
                     .build();
         } catch (PSPConfirmationException e) {
-            PaymentOrder.PaymentOrderStatus paymentOrderStatus = e.paymentStatus();
-            PaymentExecutionResult.PaymentExecutionFailure t =
-                    PaymentExecutionResult.PaymentExecutionFailure.builder()
-                    .errorCode(e.getErrorCode())
-                    .message(e.getErrorMessage()).build();
-
-            PaymentStatusUpdateCommand statusUpdateCommand = PaymentStatusUpdateCommand.builder()
-                    .paymentKey(command.getPaymentKey())
-                    .orderId(command.getOrderId())
-                    .status(paymentOrderStatus)
-                    .failure(t)
-                    .build();
-
-            throw e;
+            return processPSPConfirmation(command, event, e);
         } catch (PaymentValidationException ve) {
-
-            throw ve;
+            return processPaymentValidation(command, ve);
         } catch (PaymentAlreadyProcessedException ape) {
-
-            throw ape;
-        } catch (TimeoutException te) {
-
-            throw te;
+            return processPaymentAlreadyProcesse(ape);
+        } catch (Exception e) {
+            return processEtc(command, event, e);
         }
+    }
 
+    private PaymentConfirmationResult processEtc(PaymentConfirmCommand command, PaymentEvent event, Exception e) {
+        PaymentExecutionResult.PaymentExecutionFailure f =
+                PaymentExecutionResult.PaymentExecutionFailure.builder()
+                        .errorCode(e.getClass().getSimpleName())
+                        .message(e.getMessage()).build();
+
+        PaymentStatusUpdateCommand statusUpdateCommand = PaymentStatusUpdateCommand.builder()
+                .paymentKey(command.getPaymentKey())
+                .orderId(command.getOrderId())
+                .status(PaymentOrder.PaymentOrderStatus.UNKNOWN)
+                .failure(f)
+                .build();
+
+        paymentEventStoreFactory.updateOrderStatus(event, statusUpdateCommand);
+        return PaymentConfirmationResult.builder()
+                .status(PaymentOrder.PaymentOrderStatus.UNKNOWN)
+                .failure(f)
+                .build();
+    }
+
+    private static PaymentConfirmationResult processPaymentAlreadyProcesse(PaymentAlreadyProcessedException ape) {
+        return PaymentConfirmationResult.builder()
+                .status(PaymentOrder.PaymentOrderStatus.FAILURE)
+                .failure(PaymentExecutionResult.PaymentExecutionFailure.builder()
+                        .errorCode(ape.getClass().getSimpleName())
+                        .message(ape.getMessage()).build())
+                .build();
+    }
+
+    private static PaymentConfirmationResult processPaymentValidation(PaymentConfirmCommand command, PaymentValidationException ve) {
+        PaymentExecutionResult.PaymentExecutionFailure f = PaymentExecutionResult.PaymentExecutionFailure.builder()
+                .errorCode(ve.getClass().getSimpleName())
+                .message(ve.getMessage()).build();
+        PaymentStatusUpdateCommand.builder()
+                .paymentKey(command.getPaymentKey())
+                .orderId(command.getOrderId())
+                .status(PaymentOrder.PaymentOrderStatus.FAILURE)
+                .failure(f)
+                .build();
+
+        return PaymentConfirmationResult.builder()
+                .status(PaymentOrder.PaymentOrderStatus.FAILURE)
+                .failure(f)
+                .build();
+    }
+
+    private PaymentConfirmationResult processPSPConfirmation(PaymentConfirmCommand command, PaymentEvent event, PSPConfirmationException e) {
+        PaymentOrder.PaymentOrderStatus paymentOrderStatus = e.paymentStatus();
+        PaymentExecutionResult.PaymentExecutionFailure t =
+                PaymentExecutionResult.PaymentExecutionFailure.builder()
+                .errorCode(e.getErrorCode())
+                .message(e.getErrorMessage()).build();
+
+        PaymentStatusUpdateCommand statusUpdateCommand = PaymentStatusUpdateCommand.builder()
+                .paymentKey(command.getPaymentKey())
+                .orderId(command.getOrderId())
+                .status(paymentOrderStatus)
+                .failure(t)
+                .build();
+
+        paymentEventStoreFactory.updateOrderStatus(event, statusUpdateCommand);
+        return PaymentConfirmationResult.builder()
+                .status(paymentOrderStatus)
+                .failure(t)
+                .build();
     }
 }
