@@ -5,6 +5,7 @@ import com.subprj.paymentv2.domain.payment.order.PaymentOrderStoreFactory;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.time.LocalDateTime;
 import java.util.stream.Stream;
@@ -65,6 +66,8 @@ public class PaymentExecutionResult {
         }
     }
 
+    @ToString
+    @Builder
     public static class PaymentExecutionFailure {
         private String errorCode;
         private String message;

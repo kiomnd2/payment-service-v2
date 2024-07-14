@@ -1,5 +1,6 @@
 package com.subprj.paymentv2.common.exception;
 
+import com.subprj.paymentv2.domain.payment.order.PaymentOrder;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -30,5 +31,12 @@ public class PSPConfirmationException extends RuntimeException {
         this.isUnknown = isUnknown;
         this.isRetryableError = isRetryableError;
         this.cause = cause;
+    }
+
+    public PaymentOrder.PaymentOrderStatus paymentStatus() {
+        if (isSuccess) return PaymentOrder.PaymentOrderStatus.SUCCESS;
+        else if (isFailure) return PaymentOrder.PaymentOrderStatus.FAILURE;
+        else if (isUnknown) return PaymentOrder.PaymentOrderStatus.UNKNOWN;
+        throw new IllegalArgumentException("결제 는 올바르지 않은 결제 상태입니다.");
     }
 }

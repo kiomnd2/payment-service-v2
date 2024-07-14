@@ -1,11 +1,13 @@
 package com.subprj.paymentv2.infrastructure.payment.toss;
 
 import com.subprj.paymentv2.common.exception.PSPConfirmationException;
-import com.subprj.paymentv2.domain.payment.*;
+import com.subprj.paymentv2.domain.payment.PSPConfirmationStatus;
+import com.subprj.paymentv2.domain.payment.PaymentEvent;
+import com.subprj.paymentv2.domain.payment.PaymentExecutionResult;
+import com.subprj.paymentv2.domain.payment.PaymentExecutor;
 import com.subprj.paymentv2.domain.payment.confirm.PaymentConfirmCommand;
 import com.subprj.paymentv2.infrastructure.payment.toss.response.TossPaymentConfirmationResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
@@ -14,6 +16,7 @@ import reactor.util.retry.Retry;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+
 
 @RequiredArgsConstructor
 @Component
@@ -43,26 +46,24 @@ public class PaymentExecutorImpl implements PaymentExecutor {
                 .bodyValue(bodyValue)
                 .retrieve()
                 .onStatus(httpStatusCode -> httpStatusCode.is5xxServerError() || httpStatusCode.is4xxClientError(),
-                        clientResponse -> {
-                    return clientResponse.bodyToMono(TossPaymentConfirmationResponse.TossFailureResponse.class)
-                            .flatMap(tossFailureResponse -> {
-                                TossPaymentError error = TossPaymentError.get(tossFailureResponse.getCode());
-                                return Mono.error(PSPConfirmationException.builder()
-                                                .errorCode(error.name())
-                                                .errorMessage(error.getDescription())
-                                                .isSuccess(error.isSuccess())
-                                                .isFailure(error.isFailure())
-                                                .isUnknown(error.isUnknown())
-                                                .isRetryableError(error.isRetryableError())
-                                        .build());
-                            })
-                    ;
-                })
+                        clientResponse -> clientResponse.bodyToMono(TossPaymentConfirmationResponse.TossFailureResponse.class)
+                                .flatMap(tossFailureResponse -> {
+                                    TossPaymentError error = TossPaymentError.get(tossFailureResponse.getCode());
+                                    return Mono.error(PSPConfirmationException.builder()
+                                                    .errorCode(error.name())
+                                                    .errorMessage(error.getDescription())
+                                                    .isSuccess(error.isSuccess())
+                                                    .isFailure(error.isFailure())
+                                                    .isUnknown(error.isUnknown())
+                                                    .isRetryableError(error.isRetryableError())
+                                            .build());
+                                }))
                 .bodyToMono(TossPaymentConfirmationResponse.class)
                 .retryWhen(Retry.backoff(2, Duration.ofSeconds(1)).jitter(0.1)
                         .filter(throwable -> throwable instanceof PSPConfirmationException
                                 && ((PSPConfirmationException) throwable).getIsRetryableError())
-                        .onRetryExhaustedThrow((retryBackoffSpec, retrySignal) -> retrySignal.failure()))
+                        .onRetryExhaustedThrow((retryBackoffSpec, retrySignal) -> retrySignal.failure())
+                )
                 .block();
         return PaymentExecutionResult.builder()
                 .paymentKey(response.getPaymentKey())

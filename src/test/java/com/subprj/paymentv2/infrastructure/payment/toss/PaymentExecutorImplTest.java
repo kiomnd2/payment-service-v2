@@ -4,6 +4,7 @@ import com.subprj.paymentv2.common.exception.PSPConfirmationException;
 import com.subprj.paymentv2.domain.payment.PaymentExecutor;
 import com.subprj.paymentv2.domain.payment.confirm.PaymentConfirmCommand;
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

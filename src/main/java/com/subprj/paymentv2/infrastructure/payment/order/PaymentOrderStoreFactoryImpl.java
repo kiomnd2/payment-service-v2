@@ -3,8 +3,9 @@ package com.subprj.paymentv2.infrastructure.payment.order;
 import com.subprj.paymentv2.domain.payment.PaymentExecutionResult;
 import com.subprj.paymentv2.domain.payment.confirm.PaymentConfirmCommand;
 import com.subprj.paymentv2.domain.payment.order.PaymentOrder;
+import com.subprj.paymentv2.domain.payment.order.PaymentOrderReader;
 import com.subprj.paymentv2.domain.payment.order.PaymentOrderStoreFactory;
-import com.subprj.paymentv2.domain.payment.order.history.PaymentOrderHistoryStore;
+import com.subprj.paymentv2.domain.payment.order.PaymentStatusUpdateCommand;
 import com.subprj.paymentv2.domain.payment.order.history.PaymentOrderHistoryStoreFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -16,25 +17,16 @@ import java.util.List;
 @Component
 public class PaymentOrderStoreFactoryImpl implements PaymentOrderStoreFactory {
     private final PaymentOrderHistoryStoreFactory paymentOrderHistoryStoreFactory;
+    private final PaymentOrderReader paymentOrderReader;
 
     @Transactional
     @Override
     public void store(List<PaymentOrder> paymentOrderList, PaymentConfirmCommand command) {
         for (PaymentOrder paymentOrder : paymentOrderList) {
-            paymentOrderHistoryStoreFactory.store(paymentOrder,
-                    PaymentOrder.PaymentOrderStatus.EXECUTING,
+            paymentOrderHistoryStoreFactory.store(paymentOrder, PaymentOrder.PaymentOrderStatus.EXECUTING,
                     "PAYMENT_CONFIRMATION_START");
-            paymentOrder.changeStateExecuting();
+            paymentOrder.changeState();
         }
     }
 
-    @Transactional
-    @Override
-    public void storeOrderStatus(List<PaymentOrder> paymentOrderList, PaymentExecutionResult result) {
-        for (PaymentOrder paymentOrder : paymentOrderList) {
-            paymentOrderHistoryStoreFactory.store(paymentOrder, PaymentOrder.PaymentOrderStatus.SUCCESS,
-                    "PAYMENT_CONFIRMATION_DONE");
-            paymentOrder.changeStateByResult(result);
-        }
-    }
 }

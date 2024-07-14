@@ -1,6 +1,7 @@
 package com.subprj.paymentv2.domain.payment;
 
 import com.subprj.paymentv2.domain.payment.order.PaymentOrder;
+import com.subprj.paymentv2.domain.payment.order.PaymentStatusUpdateCommand;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
@@ -67,11 +68,12 @@ public class PaymentEvent {
         paymentOrder.setPaymentEvent(this);
     }
 
-    public void updateExtraDetail(PaymentExecutionResult result) {
-        this.orderName = result.getPaymentExtraDetails().getOrderName();
-        this.method = result.getPaymentExtraDetails().getPaymentMethod();;
-        this.approvedAt = result.getPaymentExtraDetails().getApprovedAt();
-        this.type = result.getPaymentExtraDetails().getPaymentType();
+    public void updateExtraDetail(PaymentStatusUpdateCommand command) {
+        this.orderName = command.getPaymentExtraDetails().getOrderName();
+        this.method = command.getPaymentExtraDetails().getPaymentMethod();;
+        this.approvedAt = command.getPaymentExtraDetails().getApprovedAt();
+        this.type = command.getPaymentExtraDetails().getPaymentType();
+        this.orderId = command.getOrderId();
     }
 
     @RequiredArgsConstructor
