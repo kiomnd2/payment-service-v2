@@ -44,12 +44,10 @@ public class PaymentEventStoreFactoryImpl implements PaymentEventStoreFactory {
                 case FAILURE -> {
                     paymentOrderHistoryStoreFactory.store(paymentOrder, command.getStatus(), command.getFailure().toString());
                     paymentOrder.changeStateByResult(command);
-                    event.updateExtraDetail(command);
                 }
                 case UNKNOWN -> {
                     paymentOrderHistoryStoreFactory.store(paymentOrder, command.getStatus(), "UNKNOWN");
                     paymentOrder.changeStateByResult(command);
-                    event.updateExtraDetail(command);
                 }
                 default -> {
                     throw new IllegalArgumentException(String.format("결제 상태 (status: %s 는 올바르지 않은 결제 상태입니다", command.getStatus().name()));

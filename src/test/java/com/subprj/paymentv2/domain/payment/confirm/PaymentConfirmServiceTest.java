@@ -1,5 +1,6 @@
 package com.subprj.paymentv2.domain.payment.confirm;
 
+import com.subprj.paymentv2.common.exception.PSPConfirmationException;
 import com.subprj.paymentv2.domain.payment.*;
 import com.subprj.paymentv2.domain.payment.checkout.CheckoutCommand;
 import com.subprj.paymentv2.domain.payment.checkout.CheckoutResult;
@@ -9,6 +10,7 @@ import com.subprj.paymentv2.domain.payment.order.PaymentOrderReader;
 import com.subprj.paymentv2.domain.payment.order.PaymentOrderStoreFactory;
 import com.subprj.paymentv2.domain.payment.test.PaymentDatabaseHelper;
 import com.subprj.paymentv2.domain.payment.test.PaymentTestConfiguration;
+import com.subprj.paymentv2.infrastructure.payment.toss.TossPaymentError;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
@@ -17,6 +19,7 @@ import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,7 +53,7 @@ class PaymentConfirmServiceTest {
 
 
 
-    @Mock
+    @MockBean
     PaymentExecutor paymentExecutor;
 
     @Transactional
@@ -112,5 +115,54 @@ class PaymentConfirmServiceTest {
         assertThat(payment.getType()).isEqualTo(type);
         assertThat(payment.getMethod()).isEqualTo(method);
         assertThat(payment.getApprovedAt()).isEqualTo(now);
+    }
+
+    @Transactional
+    @Test
+    void shouldHandlePSPConfiramtionException() {
+        String orderId = UUID.randomUUID().toString();
+
+        CheckoutCommand command = CheckoutCommand.builder()
+                .cartId(1L)
+                .buyerId(1L)
+                .productIds(List.of(1L, 2L, 3L))
+                .idempotencyKey(orderId)
+                .build();
+
+        CheckoutResult checkoutResult = checkoutUseCase.checkout(command);
+
+        PaymentConfirmCommand paymentConfirmCommand = PaymentConfirmCommand.builder()
+                .paymentKey(UUID.randomUUID().toString())
+                .orderId(orderId)
+                .amount(checkoutResult.getAmount())
+                .build();
+
+        PaymentConfirmService paymentConfirmService =
+                new PaymentConfirmService(paymentOrderReader, paymentOrderStoreFactory, paymentEventStoreFactory, paymentValidator, paymentExecutor);
+
+
+        PSPConfirmationException pspConfirmationException = PSPConfirmationException.builder()
+                .errorCode(TossPaymentError.REJECT_ACCOUNT_PAYMENT.name())
+                .errorMessage(TossPaymentError.REJECT_ACCOUNT_PAYMENT.getDescription())
+                .isSuccess(false)
+                .isFailure(true)
+                .isUnknown(false)
+                .isRetryableError(false)
+                .build();
+
+
+//        Mockito.when(paymentExecutor.execute(paymentConfirmCommand)).thenThrow(pspConfirmationException);
+
+        Mockito.doThrow(pspConfirmationException).when(paymentExecutor).execute(paymentConfirmCommand);
+
+
+        PaymentConfirmationResult result = paymentConfirmService.confirm(paymentConfirmCommand);
+
+        PaymentEvent payment = paymentDatabaseHelper.getPayment(orderId);
+
+        Assertions.assertThat(result.getStatus()).isEqualTo(PaymentOrder.PaymentOrderStatus.FAILURE);
+        List<PaymentOrder> paymentOrders = payment.getPaymentOrders();
+        Assertions.assertThat(paymentOrders).allMatch(paymentOrder ->
+                paymentOrder.getPaymentOrderStatus() == PaymentOrder.PaymentOrderStatus.FAILURE);
     }
 }
