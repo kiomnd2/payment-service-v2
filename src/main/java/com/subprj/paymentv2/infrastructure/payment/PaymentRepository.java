@@ -2,6 +2,7 @@ package com.subprj.paymentv2.infrastructure.payment;
 
 import com.subprj.paymentv2.domain.payment.PaymentEvent;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
 import java.util.Optional;

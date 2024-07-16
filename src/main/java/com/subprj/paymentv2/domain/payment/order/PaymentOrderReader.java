@@ -6,4 +6,5 @@ import java.util.List;
 
 public interface PaymentOrderReader {
     List<PaymentOrder> readPaymentOrder(String orderId);
+    List<PaymentOrder> readPendingPayment();
 }

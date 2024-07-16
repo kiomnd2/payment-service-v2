@@ -20,8 +20,4 @@ public class PaymentEventReaderImpl implements PaymentEventReader {
                 .orElseThrow(() -> new RuntimeException("Payment Event를 찾을 수 없습니다."));
     }
 
-    @Override
-    public List<PaymentEvent> readPendingEvent() {
-
-    }
 }

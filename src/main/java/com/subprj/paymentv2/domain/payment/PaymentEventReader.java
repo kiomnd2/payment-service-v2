@@ -7,5 +7,4 @@ import java.util.Optional;
 
 public interface PaymentEventReader {
     PaymentEvent read(String orderId);
-    List<PaymentEvent> readPendingEvent();
 }
