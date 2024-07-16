@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @Component
@@ -17,5 +18,10 @@ public class PaymentEventReaderImpl implements PaymentEventReader {
     public PaymentEvent read(String orderId) {
         return paymentRepository.findByOrderId(orderId)
                 .orElseThrow(() -> new RuntimeException("Payment Event를 찾을 수 없습니다."));
+    }
+
+    @Override
+    public List<PaymentEvent> readPendingEvent() {
+
     }
 }

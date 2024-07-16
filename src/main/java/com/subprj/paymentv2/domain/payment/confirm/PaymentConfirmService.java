@@ -28,11 +28,9 @@ public class PaymentConfirmService implements PaymentConfirmUseCase {
     public PaymentConfirmationResult confirm(PaymentConfirmCommand command) {
         List<PaymentOrder> paymentOrders = paymentReader.readPaymentOrder(command.getOrderId());
         PaymentEvent event = paymentEventStoreFactory.store(command.getOrderId(), command.getPaymentKey());
+        paymentValidator.isValid(command.getOrderId(), command.getAmount());
         try {
-            List<PaymentOrder> filteredOrder = paymentOrders.stream()
-                    .filter(paymentOrder -> paymentValidator.isValid(paymentOrder.getOrderId(), command.getAmount()))
-                    .toList();
-            paymentOrderStoreFactory.store(filteredOrder, command);
+            paymentOrderStoreFactory.store(paymentOrders, command);
             PaymentExecutionResult result = paymentExecutor.execute(command);
             paymentEventStoreFactory.updateOrderStatus(event, PaymentStatusUpdateCommand.builder()
                             .paymentKey(result.getPaymentKey())

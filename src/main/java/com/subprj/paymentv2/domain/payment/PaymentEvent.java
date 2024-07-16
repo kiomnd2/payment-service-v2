@@ -137,4 +137,19 @@ public class PaymentEvent {
     public void changePaymentKey(String paymentKey) {
         this.paymentKey = paymentKey;
     }
+
+    public boolean isSuccess() {
+        return paymentOrders.stream().allMatch(paymentOrder ->
+                paymentOrder.getPaymentOrderStatus() == PaymentOrder.PaymentOrderStatus.SUCCESS);
+    }
+
+    public boolean isFailure() {
+        return paymentOrders.stream().allMatch(paymentOrder ->
+                paymentOrder.getPaymentOrderStatus() == PaymentOrder.PaymentOrderStatus.FAILURE);
+    }
+
+    public boolean isUnknown() {
+        return paymentOrders.stream().allMatch(paymentOrder ->
+                paymentOrder.getPaymentOrderStatus() == PaymentOrder.PaymentOrderStatus.UNKNOWN);
+    }
 }
