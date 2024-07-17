@@ -32,8 +32,9 @@ public class PaymentEventStoreFactoryImpl implements PaymentEventStoreFactory {
     }
 
     @Override
-    public void updateOrderStatus(PaymentEvent event, PaymentStatusUpdateCommand command) {
-        List<PaymentOrder> paymentOrders = paymentOrderReader.readPaymentOrder(event.getOrderId());
+    public PaymentEvent updateOrderStatus(PaymentStatusUpdateCommand command) {
+        List<PaymentOrder> paymentOrders = paymentOrderReader.readPaymentOrder(command.getOrderId());
+        PaymentEvent event = paymentEventReader.read(command.getOrderId());
         for (PaymentOrder paymentOrder : paymentOrders) {
             switch (command.getStatus()) {
                 case SUCCESS -> {
@@ -54,5 +55,6 @@ public class PaymentEventStoreFactoryImpl implements PaymentEventStoreFactory {
                 }
             }
         }
+        return event;
     }
 }

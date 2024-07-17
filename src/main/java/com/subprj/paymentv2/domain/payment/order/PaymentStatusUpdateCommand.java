@@ -37,4 +37,14 @@ public class PaymentStatusUpdateCommand {
         this.paymentExtraDetails = paymentExtraDetails;
         this.failure = failure;
     }
+
+    public static  PaymentStatusUpdateCommand by(PaymentExecutionResult result) {
+        return PaymentStatusUpdateCommand.builder()
+                .paymentKey(result.getPaymentKey())
+                .orderId(result.getOrderId())
+                .status(result.paymentOrderStatus())
+                .paymentExtraDetails(result.getPaymentExtraDetails())
+                .failure(result.getFailure())
+                .build();
+    }
 }

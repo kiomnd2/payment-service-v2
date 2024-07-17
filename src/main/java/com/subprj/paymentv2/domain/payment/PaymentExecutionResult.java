@@ -42,6 +42,7 @@ public class PaymentExecutionResult {
         this.isRetryable = isRetryable;
     }
 
+
     @Getter
     public static class PaymentExtraDetails {
         private final PaymentEvent.PaymentType paymentType;
@@ -65,6 +66,7 @@ public class PaymentExecutionResult {
             this.pspRawData = pspRawData;
         }
     }
+
 
     @ToString
     @Builder

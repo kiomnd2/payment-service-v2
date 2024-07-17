@@ -32,7 +32,7 @@ public class PaymentConfirmService implements PaymentConfirmUseCase {
         try {
             paymentOrderStoreFactory.store(paymentOrders, command);
             PaymentExecutionResult result = paymentExecutor.execute(command);
-            paymentEventStoreFactory.updateOrderStatus(event, PaymentStatusUpdateCommand.builder()
+            paymentEventStoreFactory.updateOrderStatus(PaymentStatusUpdateCommand.builder()
                             .paymentKey(result.getPaymentKey())
                             .orderId(result.getOrderId())
                             .status(result.paymentOrderStatus())
@@ -67,7 +67,7 @@ public class PaymentConfirmService implements PaymentConfirmUseCase {
                 .failure(f)
                 .build();
 
-        paymentEventStoreFactory.updateOrderStatus(event, statusUpdateCommand);
+        paymentEventStoreFactory.updateOrderStatus(statusUpdateCommand);
         return PaymentConfirmationResult.builder()
                 .status(PaymentOrder.PaymentOrderStatus.UNKNOWN)
                 .failure(f)
@@ -114,7 +114,7 @@ public class PaymentConfirmService implements PaymentConfirmUseCase {
                 .failure(t)
                 .build();
 
-        paymentEventStoreFactory.updateOrderStatus(event, statusUpdateCommand);
+        paymentEventStoreFactory.updateOrderStatus(statusUpdateCommand);
         return PaymentConfirmationResult.builder()
                 .status(paymentOrderStatus)
                 .failure(t)
