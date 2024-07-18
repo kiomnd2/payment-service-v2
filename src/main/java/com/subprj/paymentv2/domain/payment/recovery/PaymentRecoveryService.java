@@ -10,6 +10,7 @@ import io.github.resilience4j.bulkhead.BulkheadConfig;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -25,6 +26,7 @@ public class PaymentRecoveryService implements PaymentRecoveryUseCase {
     private final Bulkhead bulkhead;
 
     @Scheduled(fixedDelay = 180, timeUnit = TimeUnit.SECONDS)
+    @Transactional
     @Override
     public void recovery() {
         paymentOrderReader.readPendingPayment()
@@ -35,14 +37,17 @@ public class PaymentRecoveryService implements PaymentRecoveryUseCase {
                             .orderId(event.getOrderId())
                             .amount(event.totalAmount())
                             .build();
-                }).forEach(command -> {
-                    bulkhead.executeRunnable(() -> {
-                        boolean valid = paymentValidator.isValid(command.getOrderId(), command.getAmount());
-                        if (valid) {
-                            PaymentExecutionResult result = paymentExecutor.execute(command);
-                            paymentEventStoreFactory.updateOrderStatus(PaymentStatusUpdateCommand.by(result));
+                }).forEach(command -> bulkhead.executeRunnable(() -> {
+                    boolean valid = paymentValidator.isValid(command.getOrderId(), command.getAmount());
+                    if (valid) {
+                        PaymentExecutionResult result = paymentExecutor.execute(command);
+                        paymentEventStoreFactory.updateOrderStatus(PaymentStatusUpdateCommand.by(result));
+                        if (result.getIsSuccess()) {
+                            System.out.println("recovert success");
+                        } else {
+                            System.out.println("recovery failure");
                         }
-                    });
-                });
+                    }
+                }));
     }
 }
