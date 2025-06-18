@@ -6,7 +6,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 @Getter
-public class PaymentConfirmationResult {
+public class  PaymentConfirmationResult {
     private PaymentOrder.PaymentOrderStatus status;
     private PaymentExecutionResult.PaymentExecutionFailure failure;
 

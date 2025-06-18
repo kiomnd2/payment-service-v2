@@ -23,7 +23,6 @@ public class PaymentConfirmService implements PaymentConfirmUseCase {
     private final PaymentValidator paymentValidator;
     private final PaymentExecutor paymentExecutor;
 
-    @Transactional
     @Override
     public PaymentConfirmationResult confirm(PaymentConfirmCommand command) {
         List<PaymentOrder> paymentOrders = paymentReader.readPaymentOrder(command.getOrderId());

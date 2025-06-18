@@ -31,6 +31,7 @@ public class PaymentEventStoreFactoryImpl implements PaymentEventStoreFactory {
         return paymentEvent;
     }
 
+    @Transactional
     @Override
     public PaymentEvent updateOrderStatus(PaymentStatusUpdateCommand command) {
         List<PaymentOrder> paymentOrders = paymentOrderReader.readPaymentOrder(command.getOrderId());
@@ -49,6 +50,7 @@ public class PaymentEventStoreFactoryImpl implements PaymentEventStoreFactory {
                 case UNKNOWN -> {
                     paymentOrderHistoryStoreFactory.store(paymentOrder, command.getStatus(), "UNKNOWN");
                     paymentOrder.changeStateByResult(command);
+                    paymentOrder.plusFailureCount();
                 }
                 default -> {
                     throw new IllegalArgumentException(String.format("결제 상태 (status: %s 는 올바르지 않은 결제 상태입니다", command.getStatus().name()));

@@ -34,7 +34,7 @@ public class PaymentOrder {
     @Column(name = "product_id")
     private Long productId;
 
-    @Column(name = "order_id", unique = true)
+    @Column(name = "order_id")
     private String orderId;
 
     @Column(name = "amount")
@@ -74,6 +74,10 @@ public class PaymentOrder {
     public void addHistory(PaymentOrderHistory history) {
         this.paymentOrderHistories.add(history);
         history.setPaymentOrder(this);
+    }
+
+    public void plusFailureCount() {
+        this.failedCount = this.failedCount + 1;
     }
 
 
