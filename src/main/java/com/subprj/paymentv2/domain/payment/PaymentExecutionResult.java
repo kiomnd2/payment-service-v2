@@ -1,7 +1,6 @@
 package com.subprj.paymentv2.domain.payment;
 
 import com.subprj.paymentv2.domain.payment.order.PaymentOrder;
-import com.subprj.paymentv2.domain.payment.order.PaymentOrderStoreFactory;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

@@ -9,8 +9,10 @@ import com.subprj.paymentv2.domain.payment.confirm.PaymentConfirmCommand;
 import com.subprj.paymentv2.domain.payment.order.PaymentOrder;
 import com.subprj.paymentv2.domain.payment.order.PaymentOrderReader;
 import com.subprj.paymentv2.domain.payment.order.PaymentStatusUpdateCommand;
+import com.subprj.paymentv2.domain.payment.test.PaymentDatabaseHelper;
 import com.subprj.paymentv2.domain.payment.test.PaymentTestConfiguration;
 import io.github.resilience4j.bulkhead.Bulkhead;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
@@ -51,6 +53,14 @@ class PaymentRecoveryServiceTest {
 
     @Autowired
     Bulkhead bulkhead;
+
+    @Autowired
+    private PaymentDatabaseHelper paymentDatabaseHelper;
+
+    @BeforeEach
+    void clean() {
+        paymentDatabaseHelper.clear();
+    }
 
     private final PaymentExecutor paymentExecutor = Mockito.mock(PaymentExecutor.class);
     @Transactional

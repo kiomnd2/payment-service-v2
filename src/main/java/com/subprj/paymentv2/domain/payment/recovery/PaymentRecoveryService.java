@@ -8,6 +8,7 @@ import com.subprj.paymentv2.domain.payment.order.PaymentStatusUpdateCommand;
 import io.github.resilience4j.bulkhead.Bulkhead;
 import io.github.resilience4j.bulkhead.BulkheadConfig;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +17,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
+@Profile("dev")
 @RequiredArgsConstructor
 @Service
 public class PaymentRecoveryService implements PaymentRecoveryUseCase {
@@ -25,7 +27,7 @@ public class PaymentRecoveryService implements PaymentRecoveryUseCase {
     private final PaymentEventStoreFactory paymentEventStoreFactory;
     private final Bulkhead bulkhead;
 
-    @Scheduled(fixedDelay = 180, timeUnit = TimeUnit.SECONDS)
+    @Scheduled(fixedDelay = 180, initialDelay = 180,timeUnit = TimeUnit.SECONDS)
     @Transactional
     @Override
     public void recovery() {
