@@ -45,7 +45,7 @@ public class PaymentConfirmService implements PaymentConfirmUseCase {
         } catch (PSPConfirmationException e) {
             return processPSPConfirmation(command, event, e);
         } catch (PaymentValidationException ve) {
-            return processPaymentValidation(command, ve);
+            return processPaymentValidation(ve);
         } catch (PaymentAlreadyProcessedException ape) {
             return processPaymentAlreadyProcesse(ape);
         } catch (Exception e) {
@@ -82,16 +82,10 @@ public class PaymentConfirmService implements PaymentConfirmUseCase {
                 .build();
     }
 
-    private static PaymentConfirmationResult processPaymentValidation(PaymentConfirmCommand command, PaymentValidationException ve) {
+    private static PaymentConfirmationResult processPaymentValidation(PaymentValidationException ve) {
         PaymentExecutionResult.PaymentExecutionFailure f = PaymentExecutionResult.PaymentExecutionFailure.builder()
                 .errorCode(ve.getClass().getSimpleName())
                 .message(ve.getMessage()).build();
-        PaymentStatusUpdateCommand.builder()
-                .paymentKey(command.getPaymentKey())
-                .orderId(command.getOrderId())
-                .status(PaymentOrder.PaymentOrderStatus.FAILURE)
-                .failure(f)
-                .build();
 
         return PaymentConfirmationResult.builder()
                 .status(PaymentOrder.PaymentOrderStatus.FAILURE)
