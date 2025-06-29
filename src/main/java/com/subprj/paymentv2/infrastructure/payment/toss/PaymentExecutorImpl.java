@@ -63,8 +63,7 @@ public class PaymentExecutorImpl implements PaymentExecutor {
                         .filter(throwable -> throwable instanceof PSPConfirmationException
                                 && ((PSPConfirmationException) throwable).getIsRetryableError())
                         .onRetryExhaustedThrow((retryBackoffSpec, retrySignal) -> retrySignal.failure())
-                )
-                .block();
+                ).block();
         return PaymentExecutionResult.builder()
                 .paymentKey(response.getPaymentKey())
                 .orderId(response.getOrderId())
